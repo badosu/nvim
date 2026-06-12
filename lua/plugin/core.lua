@@ -60,8 +60,8 @@ vim.keymap.set("n", "<leader>sh", pick.builtin.help, { desc = "Help" })
 
 local open_config_picker = function()
   local config_path = vim.fn.stdpath("config")
-  vim.fn.chdir(config_path)
   pick.builtin.files(nil, { source = { cwd = config_path } })
+  vim.fn.chdir(config_path)
 end
 vim.keymap.set("n", "<leader>c", open_config_picker, { desc = "Edit config" })
 
@@ -77,15 +77,18 @@ project.setup({
 vim.keymap.set("n", "<leader>p", project.pick, { desc = "Projects" })
 
 -- mini.notify =================================================================
-local mini_notify_window = function()
-  local has_statusline = vim.o.laststatus > 0
-  local pad = vim.o.cmdheight + (has_statusline and 1 or 0)
-  return { anchor = "SE", col = vim.o.columns, row = vim.o.lines - pad }
-end
 
 local notify = require("mini.notify")
 notify.setup({
-  window = { config = mini_notify_window },
+  content = {
+    -- Use notification message as is for LSP progress
+    format = function(notif)
+      if notif.data.source == "lsp_progress" then
+        return notif.msg
+      end
+      return MiniNotify.default_format(notif)
+    end,
+  },
   lsp_progress = {
     -- Whether to enable showing
     enable = true,
@@ -100,6 +103,9 @@ miniclue.setup({
   triggers = {
     -- Leader triggers
     { mode = { "n", "x" }, keys = "<Leader>" },
+    { mode = "n", keys = "\\" },
+
+    { mode = { "v", "n" }, keys = "s" },
 
     -- `[` and `]` keys
     { mode = "n", keys = "[" },
@@ -135,6 +141,12 @@ miniclue.setup({
     miniclue.gen_clues.registers(),
     miniclue.gen_clues.windows(),
     miniclue.gen_clues.z(),
+    { mode = "n", keys = "<leader>b", desc = "+Buffer" },
+    { mode = "n", keys = "<leader>x", desc = "+Diagnostics" },
+    { mode = "n", keys = "<leader>s", desc = "+Search/Find" },
+    { mode = "n", keys = "<leader>t", desc = "+Tests" },
+    { mode = "n", keys = "<leader>d", desc = "+Debug" },
+    { mode = "n", keys = "<leader>h", desc = "+Git" },
   },
 
   window = {
@@ -201,7 +213,7 @@ vim.keymap.set("n", "L", function()
   bracketed.buffer("forward")
 end, { desc = "Cycle next buffer" })
 
-vim.keymap.set("n", "<leader>d", function()
+vim.keymap.set("n", "<leader>bd", function()
   require("mini.bufremove").delete(vim.api.nvim_get_current_buf())
 end, { desc = "Delete current buffer" })
 
@@ -259,6 +271,7 @@ vim.api.nvim_create_autocmd("User", {
     end, { buffer = args.data.buf_id, desc = "Go in" })
     vim.keymap.set("n", "-", files.go_out, { buffer = args.data.buf_id, desc = "Go out" })
     vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = args.data.buf_id, desc = "Toggle show dotfiles" })
+    vim.keymap.set("n", "<C-[>", files.close, { buffer = args.data.buf_id, desc = "Close" })
   end,
 })
 
@@ -341,8 +354,10 @@ end
 
 starter.setup({
   autoopen = false,
+  evaluate_single = true, -- trigger as soon as query is resolved
   items = {
     recent_projects(5),
+    { name = "New Buffer", action = "enew", section = "Actions" },
     { name = "Open Project", action = project.pick, section = "Actions" },
     { name = "Config Edit", action = open_config_picker, section = "Actions" },
     { name = "Explore", action = files_cwd, section = "Actions" },
@@ -355,3 +370,65 @@ starter.setup({
 if vim.fn.argc() == 0 and vim.fn.line2byte(1) == -1 and vim.bo.buftype == "" then
   starter.open()
 end
+
+local icons = require("mini.icons")
+icons.setup({
+  lsp = {
+    -- lazyvim kind icons
+    array = { glyph = "", hl = "MiniIconsOrange" },
+    boolean = { glyph = "󰨙", hl = "MiniIconsOrange" },
+    enummember = { glyph = "", hl = "MiniIconsYellow" },
+    key = { glyph = "", hl = "MiniIconsYellow" },
+    namespace = { glyph = "󰦮", hl = "MiniIconsRed" },
+    null = { glyph = "", hl = "MiniIconsGrey" },
+    number = { glyph = "󰎠", hl = "MiniIconsOrange" },
+    object = { glyph = "", hl = "MiniIconsGrey" },
+    package = { glyph = "", hl = "MiniIconsPurple" },
+    string = { glyph = "", hl = "MiniIconsGreen" },
+    typeparameter = { glyph = "", hl = "MiniIconsCyan" },
+
+    -- lazyvim lsp icons
+    class = { glyph = "󱡠", hl = "MiniIconsPurple" },
+    color = { glyph = "󰏘", hl = "MiniIconsRed" },
+    constant = { glyph = "󰏿", hl = "MiniIconsOrange" },
+    constructor = { glyph = "󰒓", hl = "MiniIconsAzure" },
+    enum = { glyph = "󰦨", hl = "MiniIconsPurple" },
+    event = { glyph = "󱐋", hl = "MiniIconsRed" },
+    field = { glyph = "󰜢", hl = "MiniIconsYellow" },
+    file = { glyph = "󰈔", hl = "MiniIconsBlue" },
+    ["function"] = { glyph = "󰊕", hl = "MiniIconsAzure" },
+    folder = { glyph = "󰉋", hl = "MiniIconsBlue" },
+    interface = { glyph = "󱡠", hl = "MiniIconsPurple" },
+    keyword = { glyph = "󰻾", hl = "MiniIconsCyan" },
+    method = { glyph = "󰊕", hl = "MiniIconsAzure" },
+    module = { glyph = "󰅩", hl = "MiniIconsPurple" },
+    operator = { glyph = "󰪚", hl = "MiniIconsCyan" },
+    property = { glyph = "󰖷", hl = "MiniIconsYellow" },
+    reference = { glyph = "󰬲", hl = "MiniIconsCyan" },
+    snippet = { glyph = "󱄽", hl = "MiniIconsGreen" },
+    struct = { glyph = "󱡠", hl = "MiniIconsPurple" },
+    text = { glyph = "󰉿", hl = "MiniIconsGreen" },
+    unit = { glyph = "󰪚", hl = "MiniIconsCyan" },
+    value = { glyph = "󰦨", hl = "MiniIconsBlue" },
+    variable = { glyph = "󰆦", hl = "MiniIconsCyan" },
+  },
+})
+
+icons.mock_nvim_web_devicons()
+util.once_on("LspAttach", function()
+  icons.tweak_lsp_kind()
+end)
+
+require("mini.align").setup()
+
+-- Better quickfix ============================================
+vim.pack.add({ "https://github.com/kevinhwang91/nvim-bqf", "https://github.com/yorickpeterse/nvim-pqf" })
+
+require("pqf").setup({
+  signs = {
+    error = { text = "", hl = "DiagnosticSignError" },
+    warning = { text = "", hl = "DiagnosticSignWarn" },
+    hint = { text = "", hl = "DiagnosticSignHint" },
+    info = { text = "", hl = "DiagnosticSignInfo" },
+  },
+})

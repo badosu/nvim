@@ -24,24 +24,21 @@ vim.cmd.syntax("off")
 --   Set them directly at the bottom of the 'init.lua' file.
 
 -- stylua: ignore start
--- The next part (until `-- stylua: ignore end`) is aligned manually for easier
--- reading. Consider preserving this or remove `-- stylua` lines to autoformat.
-
-vim.opt.title       = true
-vim.opt.clipboard   = "unnamed"
-vim.opt.swapfile    = false
-vim.opt.laststatus  = 3
-vim.opt.confirm     = true
+vim.opt.title           = true
+vim.opt.clipboard       = "unnamed"
+vim.opt.swapfile        = false
+vim.opt.laststatus      = 3
+vim.opt.confirm         = true
 
 -- General ====================================================================
-vim.g.mapleader     = ' '                              -- Use `<Space>` as <Leader> key
+vim.g.mapleader         = ' '                              -- Use `<Space>` as <Leader> key
 
-vim.opt.mouse       = 'a'                              -- Enable mouse
-vim.opt.mousescroll = 'ver:6,hor:6'                    -- Customize mouse scroll
-vim.opt.switchbuf   = 'usetab'                         -- Use already opened buffers when switching
-vim.opt.undofile    = true                             -- Enable persistent undo
+vim.opt.mouse           = 'a'                              -- Enable mouse
+vim.opt.mousescroll     = 'ver:6,hor:6'                    -- Customize mouse scroll
+vim.opt.switchbuf       = 'usetab'                         -- Use already opened buffers when switching
+vim.opt.undofile        = true                             -- Enable persistent undo
 
-vim.opt.shada       = "'100,<50,s10,:1000,/100,@100,h" -- Limit ShaDa file (for startup)
+vim.opt.shada           = "'100,<50,s10,:1000,/100,@100,h" -- Limit ShaDa file (for startup)
 
 -- UI =========================================================================
 vim.opt.breakindent     = true                -- Indent wrapped lines to match line start
@@ -51,7 +48,7 @@ vim.opt.cursorline      = true                -- Enable current line highlightin
 vim.opt.linebreak       = true                -- Wrap lines at 'breakat' (if 'wrap' is set)
 vim.opt.list            = true                -- Show helpful text indicators
 vim.opt.number          = true                -- Show line numbers
-vim.opt.pumborder       = 'rounded'            -- Use border in popup menu
+vim.opt.pumborder       = 'rounded'           -- Use border in popup menu
 vim.opt.pumheight       = 10                  -- Make popup menu smaller
 vim.opt.pummaxwidth     = 100                 -- Make popup menu not too wide
 vim.opt.ruler           = false               -- Don't show cursor coordinates
@@ -64,7 +61,6 @@ vim.opt.splitright      = true                -- Vertical splits will be to the 
 vim.opt.winborder       = 'rounded'           -- Use round border in floating windows
 vim.opt.wrap            = false               -- Don't visually wrap lines (toggle with \w)
 vim.opt.winblend        = 5
-vim.opt.inccommand      = "split"             -- Preview commands like substitution etc
 vim.opt.scrolloff       = 4                   -- When scrolling have context above/below
 
 vim.opt.cursorlineopt   = 'screenline,number' -- Show cursor line per screen line
@@ -74,10 +70,11 @@ vim.opt.fillchars       = 'eob: ,fold:╌'
 vim.opt.listchars       = 'extends:…,nbsp:␣,precedes:…,tab:> '
 
 -- Folds (see `:h fold-commands`, `:h zM`, `:h zR`, `:h zA`, `:h zj`)
-vim.opt.foldlevel       = 10       -- Fold nothing by default; set to 0 or 1 to fold
-vim.opt.foldmethod      = 'indent' -- Fold based on indent level
-vim.opt.foldnestmax     = 10       -- Limit number of fold levels
-vim.opt.foldtext        = ''       -- Show text under fold with its highlighting
+vim.opt.foldlevel       = 10                                -- Fold nothing by default; set to 0 or 1 to fold
+vim.opt.foldmethod      = 'expr'                            -- Fold based on indent level
+vim.opt.foldexpr        = "v:lua.vim.treesitter.foldexpr()" -- Use treesitter for folding
+vim.opt.foldnestmax     = 10                                -- Limit number of fold levels
+vim.opt.foldtext        = ''                                -- Show text under fold with its highlighting
 
 -- Editing ====================================================================
 vim.opt.autoindent      = true                  -- Use auto indent
@@ -110,10 +107,10 @@ local diagnostic_opts   = {
   signs = {
     -- priority = 9999, severity = { min = 'ERROR', max = 'ERROR' } ,
     text = {
-      [vim.diagnostic.severity.ERROR] = '',
-      [vim.diagnostic.severity.WARN] = '',
-      [vim.diagnostic.severity.HINT] = '',
-      [vim.diagnostic.severity.INFO] = '',
+      [vim.diagnostic.severity.ERROR] = '',
+      [vim.diagnostic.severity.WARN]  = '',
+      [vim.diagnostic.severity.HINT]  = '',
+      [vim.diagnostic.severity.INFO]  = '',
     },
   },
 
@@ -132,7 +129,7 @@ local diagnostic_opts   = {
 }
 
 -- Use `later()` to avoid sourcing `vim.diagnostic` on startup
-util.once_on("VimEnter", function()
+util.once_on("LspAttach", function()
   vim.diagnostic.config(diagnostic_opts)
 end)
 

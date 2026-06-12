@@ -19,8 +19,9 @@ util.require_on("VimEnter", {
   "plugin.lsp",
   "plugin.conform",
   "plugin.completion",
-  "plugin.mini_icons", -- depends: lsp, completion
   "plugin.gitsigns",
+  "plugin.neotest",
+  "plugin.dap",
   "config.statusline", -- depends: tokyonight
 })
 

@@ -7,5 +7,5 @@ vim.pack.add({
 require("mason").setup()
 
 require("mason-lspconfig").setup({
-  ensure_installed = { "lua_ls", "stylua", "jsonls" },
+  ensure_installed = { "lua_ls", "stylua", "jsonls", "expert" },
 })

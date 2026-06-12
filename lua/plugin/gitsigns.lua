@@ -60,8 +60,8 @@ gitsigns.setup({
     map("n", "<leader>hq", gitsigns.setqflist, { desc = "Set gitsigns quickfix" })
 
     -- Toggles
-    map("n", "<leader>tb", gitsigns.toggle_current_line_blame, { desc = "Toggle blame line" })
-    map("n", "<leader>tw", gitsigns.toggle_word_diff, { desc = "Toggle word diff" })
+    map("n", "\\B", gitsigns.toggle_current_line_blame, { desc = "Toggle blame inline (git)" })
+    map("n", "\\W", gitsigns.toggle_word_diff, { desc = "Toggle word diff (git)" })
 
     -- Text object
     map({ "o", "x" }, "ih", gitsigns.select_hunk, { desc = "Select hunk" })
