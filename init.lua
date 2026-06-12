@@ -8,25 +8,20 @@ end
 
 local util = require("util")
 
+-- WARN: when adding or removing packs run and replace on .luarc.jsonc
+-- ls /home/badosu/.local/share/nvim/site/pack/core/opt | sed 's|^|"$XDG_DATA_HOME/nvim/site/pack/core/opt/|; s|$|",|'
+
 util.require_on("VimEnter", {
   "plugin.core",
   "plugin.tokyonight",
+  "plugin.treesitter",
   "plugin.mise",
   "plugin.lsp",
   "plugin.conform",
-  "plugin.fzf_lua",
-  "plugin.mini_icons", -- depends: mason or whatever lsp stuff
-  "plugin.mini_notify",
-  "plugin.bufferline",
-  "plugin.project",
-  "plugin.oil",
   "plugin.completion",
-  "config.statusline", -- depends: tokyonight
-  "plugin.which_key",
-})
-
-util.require_on("BufReadPre", {
+  "plugin.mini_icons", -- depends: lsp, completion
   "plugin.gitsigns",
+  "config.statusline", -- depends: tokyonight
 })
 
 require("config.keymaps")
