@@ -2,9 +2,14 @@ local util = require("util")
 
 -- native :Undotree ============================================================
 vim.cmd.packadd("nvim.undotree")
+-- native :DiffTool ============================================================
+vim.cmd.packadd("nvim.difftool")
 
--- mini stuff ==================================================================
-vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
+-- mini =======================================================================
+require("mini.align").setup()
+require("mini.surround").setup({})
+require("mini.tabline").setup()
+require("mini.cmdline").setup()
 
 require("mini.basics").setup({
   -- Options. Set field to `false` to disable.
@@ -46,9 +51,6 @@ require("mini.basics").setup({
   },
 })
 
--- mini.surround ===============================================================
-require("mini.surround").setup({})
-
 -- mini.pick ===================================================================
 local pick = require("mini.pick")
 pick.setup()
@@ -63,18 +65,7 @@ local open_config_picker = function()
   pick.builtin.files(nil, { source = { cwd = config_path } })
   vim.fn.chdir(config_path)
 end
-vim.keymap.set("n", "<leader>c", open_config_picker, { desc = "Edit config" })
-
--- custom project picker
-local project = require("config.project")
-
-project.setup({
-  detect = function(path)
-    return not util.is_dot_home_project(path) and vim.fs.root(path, { ".git" })
-  end,
-})
-
-vim.keymap.set("n", "<leader>p", project.pick, { desc = "Projects" })
+vim.keymap.set("n", "<leader>sc", open_config_picker, { desc = "Edit config" })
 
 -- mini.notify =================================================================
 
@@ -105,6 +96,7 @@ miniclue.setup({
     { mode = { "n", "x" }, keys = "<Leader>" },
     { mode = "n", keys = "\\" },
 
+    { mode = { "x", "n" }, keys = "c" },
     { mode = { "v", "n" }, keys = "s" },
 
     -- `[` and `]` keys
@@ -133,7 +125,6 @@ miniclue.setup({
   },
 
   clues = {
-    -- Enhance this by adding descriptions for <Leader> mapping groups
     miniclue.gen_clues.square_brackets(),
     miniclue.gen_clues.builtin_completion(),
     miniclue.gen_clues.g(),
@@ -147,6 +138,7 @@ miniclue.setup({
     { mode = "n", keys = "<leader>t", desc = "+Tests" },
     { mode = "n", keys = "<leader>d", desc = "+Debug" },
     { mode = "n", keys = "<leader>h", desc = "+Git" },
+    { mode = "n", keys = "<leader><tab>", desc = "+Tab" },
   },
 
   window = {
@@ -199,8 +191,7 @@ ai.setup({
   },
 })
 
--- tabline and buffer movement =================================================
-require("mini.tabline").setup()
+-- mini.bracketed =============================================================
 local bracketed = require("mini.bracketed")
 
 bracketed.setup()
@@ -213,8 +204,9 @@ vim.keymap.set("n", "L", function()
   bracketed.buffer("forward")
 end, { desc = "Cycle next buffer" })
 
+local bufremove = require("mini.bufremove")
 vim.keymap.set("n", "<leader>bd", function()
-  require("mini.bufremove").delete(vim.api.nvim_get_current_buf())
+  bufremove.delete(vim.api.nvim_get_current_buf())
 end, { desc = "Delete current buffer" })
 
 -- mini.files ==================================================================
@@ -263,31 +255,32 @@ local toggle_dotfiles = function()
   MiniFiles.refresh({ content = { filter = new_filter } })
 end
 
-vim.api.nvim_create_autocmd("User", {
+util.new_autocmd("User", function(args)
+  vim.keymap.set("n", "<enter>", function()
+    files.go_in({ close_on_file = true })
+  end, { buffer = args.data.buf_id, desc = "Go in" })
+  vim.keymap.set("n", "-", files.go_out, { buffer = args.data.buf_id, desc = "Go out" })
+  vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = args.data.buf_id, desc = "Toggle show dotfiles" })
+  vim.keymap.set("n", "<C-[>", files.close, { buffer = args.data.buf_id, desc = "Close" })
+end, {
   pattern = "MiniFilesBufferCreate",
-  callback = function(args)
-    vim.keymap.set("n", "<enter>", function()
-      files.go_in({ close_on_file = true })
-    end, { buffer = args.data.buf_id, desc = "Go in" })
-    vim.keymap.set("n", "-", files.go_out, { buffer = args.data.buf_id, desc = "Go out" })
-    vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = args.data.buf_id, desc = "Toggle show dotfiles" })
-    vim.keymap.set("n", "<C-[>", files.close, { buffer = args.data.buf_id, desc = "Close" })
-  end,
+  desc = "Set up keymaps for MiniFiles",
 })
 
--- mini.patterns ===============================================================
+-- mini.hipatterns =============================================================
 local mini_patterns = require("mini.hipatterns")
-vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
+
+local update_mini_hl = function()
+  local identifier_hl = vim.api.nvim_get_hl(0, { name = "Identifier", link = false })
+
+  vim.api.nvim_set_hl(0, "UserHipatternsPerf", { bold = true, fg = "black", bg = identifier_hl.fg })
+end
+
+update_mini_hl()
+
+util.new_autocmd("ColorScheme", update_mini_hl, {
   group = vim.api.nvim_create_augroup("todo_highlight", { clear = true }),
-  callback = function()
-    local get = function(name)
-      return vim.api.nvim_get_hl(0, { name = name, link = false })
-    end
-    local make = function(name, fg, bg)
-      vim.api.nvim_set_hl(0, name, { bold = true, fg = fg, bg = bg })
-    end
-    make("UserHipatternsPerf", "black", get("Identifier").fg)
-  end,
+  desc = "Update mini.hipatterns user highlights",
 })
 
 local hi_todo = function(words, hl_name)
@@ -322,6 +315,7 @@ local hi_todo = function(words, hl_name)
   }
 end
 
+-- PERF  asdasdasdasd
 mini_patterns.setup({
   highlighters = {
     fix = hi_todo({ "FIX", "FIXME" }, "MiniHipatternsFixme"),
@@ -331,6 +325,19 @@ mini_patterns.setup({
     perf = hi_todo({ "PERF" }, "UserHipatternsPerf"),
   },
 })
+
+-- custom project picker =====================================================
+local project = require("config.project")
+
+project.setup({
+  event = "User",
+  event_opts = { pattern = "GitBufOpen" },
+  detect = function(path, data)
+    return not util.is_dot_home_project(path) and (data.git_root or vim.fs.root(path, ".git"))
+  end,
+})
+
+vim.keymap.set("n", "<leader>sp", project.pick, { desc = "Projects" })
 
 -- mini.starter ================================================================
 local starter = require("mini.starter")
@@ -370,6 +377,29 @@ starter.setup({
 if vim.fn.argc() == 0 and vim.fn.line2byte(1) == -1 and vim.bo.buftype == "" then
   starter.open()
 end
+
+-- Auto-delete the initial [No Name] buffer when a real file is opened =========
+
+-- Whether buffer is empty, unnamed, and not modified
+local function is_scratch_buffer(bufnr)
+  return vim.fn.bufname(bufnr) == "" and vim.bo[bufnr].buftype == "" and not vim.bo[bufnr].modified
+end
+
+local function check_scratch_buffer(bufnr)
+  if is_scratch_buffer(bufnr) then
+    vim.schedule(function()
+      pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+    end)
+  end
+end
+
+util.once_on("BufReadPre", function()
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    check_scratch_buffer(bufnr)
+  end
+end, { desc = "Remove scratch buffer once first buffer is read" })
+
+-- mini.icons ===================================================================
 
 local icons = require("mini.icons")
 icons.setup({
@@ -417,18 +447,4 @@ icons.setup({
 icons.mock_nvim_web_devicons()
 util.once_on("LspAttach", function()
   icons.tweak_lsp_kind()
-end)
-
-require("mini.align").setup()
-
--- Better quickfix ============================================
-vim.pack.add({ "https://github.com/kevinhwang91/nvim-bqf", "https://github.com/yorickpeterse/nvim-pqf" })
-
-require("pqf").setup({
-  signs = {
-    error = { text = "", hl = "DiagnosticSignError" },
-    warning = { text = "", hl = "DiagnosticSignWarn" },
-    hint = { text = "", hl = "DiagnosticSignHint" },
-    info = { text = "", hl = "DiagnosticSignInfo" },
-  },
-})
+end, { desc = "Tweak LSP kinds for mini.icons once" })

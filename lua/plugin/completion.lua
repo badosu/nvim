@@ -1,5 +1,4 @@
 require("mini.snippets").setup()
-require("mini.cmdline").setup()
 
 require("mini.completion").setup({
   lsp_completion = {
@@ -8,12 +7,12 @@ require("mini.completion").setup({
   },
 })
 
+local util = require("util")
+
 -- Trigger LSP completion directly to prevent buffer text fallback
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    vim.bo[args.buf].omnifunc = "v:lua.MiniCompletion.completefunc_lsp"
-  end,
-})
+util.new_autocmd("LspAttach", function(args)
+  vim.bo[args.buf].omnifunc = "v:lua.MiniCompletion.completefunc_lsp"
+end, { desc = "Set up LSP omnifunc" })
 
 -- To use <Tab> and <S-Tab> for navigation through completion list, make these mappings:
 local imap_expr = function(lhs, rhs)

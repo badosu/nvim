@@ -3,7 +3,12 @@ local pick = require("mini.pick")
 local M = {}
 
 local config = {
-  detect = function(path)
+  event = { "BufReadPost", "BufNewFile" },
+  event_opts = {
+    group = vim.api.nvim_create_augroup("pick.project", {}),
+    desc = "Check if this file belongs to a project to be added",
+  },
+  detect = function(path, _)
     return vim.fs.root(path, ".git")
   end,
   state_file = vim.fs.joinpath(vim.fn.stdpath("state"), "projects.json"),
@@ -47,7 +52,7 @@ local function cleanup()
   local changed = false
 
   for path in pairs(projects) do
-    if not config.detect(path) then
+    if not config.detect(path, {}) then
       projects[path] = nil
       changed = true
     end
@@ -123,12 +128,12 @@ function M.list(length)
 end
 
 local function check_buffer(arg)
-  local file = vim.api.nvim_buf_get_name(arg.buf)
+  local file = vim.api.nvim_buf_get_name(arg.buf or arg.data.buf)
   if file == "" then
     return
   end
 
-  local root = config.detect(file)
+  local root = config.detect(file, { data = arg.data })
 
   if root and not touch(root) then
     add(root)
@@ -137,6 +142,7 @@ end
 
 -- ```lua
 -- require("config.project").setup({
+--   event = { "BufReadPost", "BufNewFile" },
 --   detect = function(path)
 --     return vim.fs.root(path, ".git")
 --   end,
@@ -154,7 +160,8 @@ function M.setup(opts)
     check_buffer({ buf = buf })
   end
 
-  vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, { callback = check_buffer })
+  local event_opts = vim.tbl_deep_extend("keep", { callback = check_buffer }, config.event_opts or {})
+  vim.api.nvim_create_autocmd(config.event, event_opts)
 end
 
 function M.choose(item)

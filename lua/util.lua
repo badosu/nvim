@@ -22,33 +22,32 @@ M.is_dot_home_project = function(path)
   return false
 end
 
-M.once_on = function(ev, callback)
-  vim.api.nvim_create_autocmd(ev, {
-    group = gr,
-    once = true,
+local autocmd_opts = { group = gr }
+
+M.new_autocmd = function(ev, callback, opts)
+  opts = vim.tbl_extend("keep", autocmd_opts, {
     callback = callback,
-  })
+  }, opts or {})
+
+  vim.api.nvim_create_autocmd(ev, opts)
 end
 
-M.require_on = function(ev, paths)
+M.once_on = function(ev, callback, opts)
+  M.new_autocmd(ev, callback, vim.tbl_extend("keep", { once = true }, opts or {}))
+end
+
+M.require_on = function(ev, paths, opts)
   if type(paths) == "string" then
     paths = { paths }
   end
 
-  vim.api.nvim_create_autocmd(ev, {
-    group = gr,
-    once = true,
-    callback = function()
-      for _, path in ipairs(paths) do
-        require(path)
-      end
-    end,
-  })
-end
+  opts = vim.tbl_extend("keep", { desc = "Lua require: " .. table.concat(paths, " | ") }, opts or {})
 
-M.new_autocmd = function(event, pattern, callback, desc)
-  local opts = { group = gr, pattern = pattern, callback = callback, desc = desc }
-  vim.api.nvim_create_autocmd(event, opts)
+  M.once_on(ev, function()
+    for _, path in ipairs(paths) do
+      require(path)
+    end
+  end, opts)
 end
 
 return M

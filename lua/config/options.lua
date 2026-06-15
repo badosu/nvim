@@ -48,7 +48,7 @@ vim.opt.cursorline      = true                -- Enable current line highlightin
 vim.opt.linebreak       = true                -- Wrap lines at 'breakat' (if 'wrap' is set)
 vim.opt.list            = true                -- Show helpful text indicators
 vim.opt.number          = true                -- Show line numbers
-vim.opt.pumborder       = 'rounded'           -- Use border in popup menu
+-- vim.opt.pumborder       = 'rounded'           -- Use border in popup menu
 vim.opt.pumheight       = 10                  -- Make popup menu smaller
 vim.opt.pummaxwidth     = 100                 -- Make popup menu not too wide
 vim.opt.ruler           = false               -- Don't show cursor coordinates
@@ -58,7 +58,7 @@ vim.opt.signcolumn      = 'auto:4'            -- Show up to 4 signs in the signc
 vim.opt.splitbelow      = true                -- Horizontal splits will be below
 vim.opt.splitkeep       = 'screen'            -- Reduce scroll during window split
 vim.opt.splitright      = true                -- Vertical splits will be to the right
-vim.opt.winborder       = 'rounded'           -- Use round border in floating windows
+-- vim.opt.winborder       = 'rounded'           -- Use round border in floating windows
 vim.opt.wrap            = false               -- Don't visually wrap lines (toggle with \w)
 vim.opt.winblend        = 5
 vim.opt.scrolloff       = 4                   -- When scrolling have context above/below
@@ -128,12 +128,11 @@ local diagnostic_opts   = {
   update_in_insert = false,
 }
 
--- Use `later()` to avoid sourcing `vim.diagnostic` on startup
 util.once_on("LspAttach", function()
   vim.diagnostic.config(diagnostic_opts)
-end)
+end, { desc = "Configure diagnostics the first time LSP attaches" })
 
 -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
 -- Do on `FileType` to always override these changes from filetype plugins.
 local f = function() vim.cmd('setlocal formatoptions-=c formatoptions-=o') end
-util.new_autocmd('FileType', nil, f, "Proper 'formatoptions'")
+util.new_autocmd('FileType', f, { desc = "Proper 'formatoptions'" })

@@ -1,3 +1,5 @@
+// WARN when adding or removing packs run and replace on .luarc.jsonc
+// :.!ls /home/badosu/.local/share/nvim/site/pack/core/opt | sed 's|^|"$XDG_DATA_HOME/nvim/site/pack/core/opt/|; s|$|",|'
 {
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "diagnostics": {
@@ -21,7 +23,9 @@
     ],
     "library": [
       "$VIMRUNTIME",
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/baleia.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/conform.nvim",
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/diffview.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/FixCursorHold.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/gitsigns.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/mason-lspconfig.nvim",
@@ -29,6 +33,7 @@
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/mason-nvim-dap.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/mini.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/mise.nvim",
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/neogit",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/neotest",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/neotest-elixir",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/neotest-python",
@@ -41,7 +46,7 @@
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/nvim-treesitter-textobjects",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/plenary.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/tokyonight.nvim",
-      "$XDG_DATA_HOME/nvim/site/pack/core/opt/tree-sitter-manager.nvim",
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/tree-sitter-manager.nvim"
     ]
   },
   "diagnostics.disable": [

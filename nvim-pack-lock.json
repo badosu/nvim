@@ -4,9 +4,17 @@
       "rev": "1900f89dc17c603eec29960f57c00bd9ae696495",
       "src": "https://github.com/antoinemadec/FixCursorHold.nvim"
     },
+    "baleia.nvim": {
+      "rev": "710537ff5cd669c5a76c5f5b6a9169fd9b913d18",
+      "src": "https://github.com/m00qek/baleia.nvim"
+    },
     "conform.nvim": {
       "rev": "619363c30309d29ffa631e67c8183f2a72caa373",
       "src": "https://github.com/stevearc/conform.nvim.git"
+    },
+    "diffview.nvim": {
+      "rev": "4516612fe98ff56ae0415a259ff6361a89419b0a",
+      "src": "https://github.com/sindrets/diffview.nvim"
     },
     "gitsigns.nvim": {
       "rev": "25050e4ed39e628282831d4cbecb1850454ce915",
@@ -31,6 +39,10 @@
     "mise.nvim": {
       "rev": "38ede119924ee70fe49d51f22c140f85b1c3ccf3",
       "src": "https://plugins.ejri.dev/mise.nvim"
+    },
+    "neogit": {
+      "rev": "5d1b65d6215928e941e1a6a4e76e02fd45ada31f",
+      "src": "https://github.com/NeogitOrg/neogit"
     },
     "neotest": {
       "rev": "ad991822b7076b1d940b33a9d6d0d30416d5df81",

@@ -16,31 +16,17 @@ neotest.setup({
   },
 })
 
-vim.keymap.set("n", "<leader>tt", function()
-  neotest.run.run()
-end, { desc = "Run nearest test" })
+vim.keymap.set("n", "<leader>tt", neotest.run.run, { desc = "Run nearest test" })
+vim.keymap.set("n", "<leader>tr", neotest.run.run_last, { desc = "Run last test" })
+vim.keymap.set("n", "<leader>ts", neotest.run.stop, { desc = "Stop test run" })
+vim.keymap.set("n", "<leader>to", neotest.output_panel.toggle, { desc = "Toggle output panel" })
+vim.keymap.set("n", "<leader>ts", neotest.summary.toggle, { desc = "Toggle summary panel" })
 
 vim.keymap.set("n", "<leader>td", function()
   ---@diagnostic disable-next-line: missing-fields
   neotest.run.run({ strategy = "dap" })
 end, { desc = "Run nearest test (debug)" })
 
-vim.keymap.set("n", "<leader>tr", function()
-  neotest.run.run_last()
-end, { desc = "Run last test" })
-
-vim.keymap.set("n", "<leader>ts", function()
-  neotest.run.stop()
-end, { desc = "Stop test run" })
-
 vim.keymap.set("n", "<leader>tf", function()
   neotest.run.run(vim.fn.expand("%"))
 end, { desc = "Run file tests" })
-
-vim.keymap.set("n", "<leader>to", function()
-  neotest.output_panel.toggle()
-end, { desc = "Toggle output panel" })
-
-vim.keymap.set("n", "<leader>ts", function()
-  neotest.summary.toggle()
-end, { desc = "Toggle summary panel" })

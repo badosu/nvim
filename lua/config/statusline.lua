@@ -34,9 +34,7 @@ end
 
 setup_highlights()
 
-vim.api.nvim_create_autocmd("ColorScheme", {
-  callback = setup_highlights,
-})
+require("util").new_autocmd("ColorScheme", setup_highlights, { desc = "Update statusline highlights" })
 
 -- --------------------------------------------------------------------------
 -- Mode
@@ -80,13 +78,11 @@ local function update_file_info()
   cached_file_info = string.format("%%#SLFile#%s %s%%*%s", icon, filename, modified)
 end
 
-vim.api.nvim_create_autocmd({
+require("util").new_autocmd({
   "BufEnter",
   "BufFilePost",
   "BufModifiedSet",
-}, {
-  callback = update_file_info,
-})
+}, update_file_info, { desc = "Update statusline file info" })
 
 -- initialize
 update_file_info()
