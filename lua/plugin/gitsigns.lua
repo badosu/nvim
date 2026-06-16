@@ -3,6 +3,8 @@ vim.pack.add({ { src = "https://github.com/lewis6991/gitsigns.nvim" } })
 local gitsigns = require("gitsigns")
 
 gitsigns.setup({
+  signcolumn = false,
+  numhl = true, -- use number column instead
   on_attach = function(bufnr)
     local function map(mode, l, r, opts)
       opts = opts or {}

@@ -1,7 +1,7 @@
 -- Have netrw usable asap
 vim.g.netrw_banner = false
 
-local util = require("util")
+local utils = require("utils")
 
 -- Use treesitter syntax highlighting
 vim.cmd.syntax("off")
@@ -102,6 +102,8 @@ vim.opt.complete        = '.,w,b,kspell'                  -- Use less sources
 vim.opt.completeopt     = 'menuone,noselect,fuzzy,nosort' -- Use custom behavior
 vim.opt.completetimeout = 100                             -- Limit sources delay
 
+vim.lsp.document_color.enable(true, nil, { style = "virtual" })
+
 local diagnostic_opts   = {
   -- Show signs on top of any other sign, but only for warnings and errors
   signs = {
@@ -128,11 +130,11 @@ local diagnostic_opts   = {
   update_in_insert = false,
 }
 
-util.once_on("LspAttach", function()
+utils.once_on("LspAttach", function()
   vim.diagnostic.config(diagnostic_opts)
 end, { desc = "Configure diagnostics the first time LSP attaches" })
 
 -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
 -- Do on `FileType` to always override these changes from filetype plugins.
 local f = function() vim.cmd('setlocal formatoptions-=c formatoptions-=o') end
-util.new_autocmd('FileType', f, { desc = "Proper 'formatoptions'" })
+utils.new_autocmd('FileType', f, { desc = "Proper 'formatoptions'" })

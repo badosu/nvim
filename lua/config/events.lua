@@ -15,7 +15,7 @@ local check_git_repo = function(arg)
   })
 end
 
-require("util").new_autocmd(
+require("utils").new_autocmd(
   { "BufReadPost", "BufNewFile" },
   check_git_repo,
   { desc = "Check if this file is inside a git tracked repository" }

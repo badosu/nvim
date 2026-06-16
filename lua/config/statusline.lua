@@ -34,7 +34,7 @@ end
 
 setup_highlights()
 
-require("util").new_autocmd("ColorScheme", setup_highlights, { desc = "Update statusline highlights" })
+require("utils").new_autocmd("ColorScheme", setup_highlights, { desc = "Update statusline highlights" })
 
 -- --------------------------------------------------------------------------
 -- Mode
@@ -78,7 +78,7 @@ local function update_file_info()
   cached_file_info = string.format("%%#SLFile#%s %s%%*%s", icon, filename, modified)
 end
 
-require("util").new_autocmd({
+require("utils").new_autocmd({
   "BufEnter",
   "BufFilePost",
   "BufModifiedSet",
