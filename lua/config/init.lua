@@ -52,10 +52,6 @@ M.require_on = function(ev, paths, opts)
   end, opts)
 end
 
-M.buf_is_quickfix = function(buf)
-  return vim.api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix"
-end
-
 local lsp_ever_attached = false
 M.once_lsp = function(callback, opts)
   return lsp_ever_attached and callback() or M.once("LspAttach", callback, opts)
