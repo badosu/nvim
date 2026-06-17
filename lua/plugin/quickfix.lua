@@ -5,7 +5,7 @@ vim.pack.add({
 
 require("bqf").bootstrap() -- only because we are inside FileType pattern=qf event
 
-local signs = require("config.settings").diagnostic_signs
+local signs = Config.settings.diagnostic_signs
 require("pqf").setup({
   signs = {
     error = { text = signs[vim.diagnostic.severity.ERROR], hl = "DiagnosticSignError" },

@@ -1,3 +1,9 @@
+-- Whether any LSP client has ever attached
+Config.once("LspAttach", function()
+  vim.lsp.document_color.enable(true, nil, { style = "virtual" })
+  vim.diagnostic.config(Config.settings.diagnostic)
+end, { desc = "Configure LSP options" })
+
 Config.once("GUIEnter", function(ev)
   vim.opt.guifont = "IosevkaTerm Nerd Font Mono:h14"
   vim.opt.winblend = 0
@@ -78,3 +84,9 @@ local function check_scratch_buffer()
 end
 
 Config.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })
+
+Config.on("FileType", function()
+  -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
+  -- Do on `FileType` to always override these changes from filetype plugins.
+  vim.cmd("setlocal formatoptions-=c formatoptions-=o")
+end, { desc = "Proper 'formatoptions'" })

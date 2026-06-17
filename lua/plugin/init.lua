@@ -17,4 +17,4 @@ Config.require_on("User", {
 }, { pattern = "GitBufOpen" })
 
 Config.require_on("FileType", "plugin.markdown", { pattern = "markdown" })
-Config.require_on("FileType", "plugin.quick_fix", { pattern = "qf" })
+Config.require_on("FileType", "plugin.quickfix", { pattern = "qf" })

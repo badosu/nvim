@@ -5,4 +5,4 @@ vim.pack.add({
 })
 
 require("mason").setup()
-require("mason-lspconfig").setup({ ensure_installed = require("config.settings").tools })
+require("mason-lspconfig").setup({ ensure_installed = Config.settings.tools })

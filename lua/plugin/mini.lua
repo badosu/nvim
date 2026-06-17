@@ -25,56 +25,41 @@ vim.keymap.set("n", "L", function()
 end, { desc = "Cycle next buffer" })
 
 require("mini.basics").setup({
-  -- Options. Set field to `false` to disable.
-  options = {
-    -- Basic options ('number', 'ignorecase', and many more)
-    basic = true,
-
-    -- Extra UI features ('winblend', 'listchars', 'pumheight', ...)
-    extra_ui = true,
-
-    -- Presets for window borders ('single', 'double', ...)
-    -- Default 'auto' infers from 'winborder' option
-    win_borders = "auto",
-  },
-
   -- Mappings. Set field to `false` to disable.
   mappings = {
     -- Basic mappings (better 'jk', save with Ctrl+S, ...)
     basic = false,
-
     -- Prefix for mappings that toggle common options ('wrap', 'spell', ...).
     -- Supply empty string to not create these mappings.
     option_toggle_prefix = [[\]],
-
-    -- Window navigation with <C-hjkl>, resize with <C-arrow>
-    windows = false,
-
     -- Move cursor in Insert, Command, and Terminal mode with <M-hjkl>
-    move_with_alt = false,
+    move_with_alt = true,
   },
-
-  -- Autocommands. Set field to `false` to disable
   autocommands = {
     -- Basic autocommands (highlight on yank, start Insert in terminal, ...)
     basic = true,
-
     -- Set 'relativenumber' only in linewise and blockwise Visual mode
     relnum_in_visual_mode = true,
+  },
+  -- Options. Set field to `false` to disable.
+  options = {
+    -- Basic options ('number', 'ignorecase', and many more)
+    basic = false,
+    -- Extra UI features ('winblend', 'listchars', 'pumheight', ...)
+    extra_ui = false,
   },
 })
 
 -- mini.pick ===================================================================
 local pick = require("mini.pick")
 pick.setup({
-  mappings = { choose_marked = '<C-q>', }
+  mappings = {
+    choose_marked = "<C-q>" -- Send to quickfix or loclist
+  },
 })
 
 vim.keymap.set("n", "<leader><leader>", pick.builtin.files, { desc = "Find files" })
 vim.keymap.set("n", "<leader>sg", pick.builtin.grep_live, { desc = "Live grep" })
-vim.keymap.set("n", "<leader>sG", function()
-  pick.builtin.grep_live({ tool = "rg --hidden" })
-end, { desc = "Live grep (hidden files)" })
 vim.keymap.set("n", "<leader>sb", pick.builtin.buffers, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>sh", pick.builtin.help, { desc = "Help" })
 
@@ -91,32 +76,21 @@ miniclue.setup({
     -- Leader triggers
     { mode = { "n", "x" }, keys = "<Leader>" },
     { mode = "n",          keys = "\\" },
-
-    { mode = { "v", "n" }, keys = "s" },
-
     -- `[` and `]` keys
     { mode = "n",          keys = "[" },
     { mode = "n",          keys = "]" },
-
-    -- Built-in completion
-    { mode = "i",          keys = "<C-x>" },
-
-    -- `g` key
-    { mode = { "n", "x" }, keys = "g" },
-
     -- Marks
     { mode = { "n", "x" }, keys = "'" },
     { mode = { "n", "x" }, keys = "`" },
-
     -- Registers
     { mode = { "n", "x" }, keys = '"' },
     { mode = { "i", "c" }, keys = "<C-r>" },
 
-    -- Window commands
-    { mode = "n",          keys = "<C-w>" },
-
-    -- `z` key
-    { mode = { "n", "x" }, keys = "z" },
+    { mode = "i",          keys = "<C-x>" }, -- Built-in completion
+    { mode = { "n", "x" }, keys = "g" },     -- `g` key
+    { mode = "n",          keys = "<C-w>" }, -- Window commands
+    { mode = { "n", "x" }, keys = "z" },     -- `z` key
+    { mode = { "v", "n" }, keys = "s" },     -- mini.surround
   },
 
   clues = {
@@ -127,13 +101,7 @@ miniclue.setup({
     miniclue.gen_clues.registers(),
     miniclue.gen_clues.windows(),
     miniclue.gen_clues.z(),
-    { mode = "n",          keys = "<leader>x", desc = "+Diagnostic" },
-    { mode = "n",          keys = "<leader>s", desc = "+Search/Find" },
-    { mode = "n",          keys = "<leader>t", desc = "+Test" },
-    { mode = "n",          keys = "<leader>d", desc = "+Debug" },
-    { mode = { "n", "h" }, keys = "<leader>h", desc = "+Git" },
-    { mode = "n",          keys = "<leader>b", desc = "+Buffer" },
-    -- { mode = "n", keys = "<tab>", desc = "+Tab" }, -- doesnt work for some reason
+    Config.settings.clues,
   },
 
   window = {
@@ -356,9 +324,8 @@ end
 -- mini.icons ===================================================================
 
 local icons = require("mini.icons")
-local store = require("config.settings")
 
-icons.setup({ lsp = store.icons.lsp })
+icons.setup({ lsp = Config.settings.icons.lsp })
 icons.mock_nvim_web_devicons()
 Config.once_lsp(function()
   icons.tweak_lsp_kind()

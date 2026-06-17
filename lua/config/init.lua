@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+  settings = require("config.settings")
+}
 
 local augroup = vim.api.nvim_create_augroup("my-config", {})
 
@@ -54,8 +56,13 @@ M.buf_is_quickfix = function(buf)
   return vim.api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix"
 end
 
+local lsp_ever_attached = false
 M.once_lsp = function(callback, opts)
-  return vim.g.lsp_was_ever_attached and callback() or M.once("LspAttach", callback, opts)
+  return lsp_ever_attached and callback() or M.once("LspAttach", callback, opts)
 end
+
+M.once("LspAttach", function()
+  lsp_ever_attached = true
+end, { desc = "Configure LSP options" })
 
 return M
