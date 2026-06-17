@@ -1,6 +1,9 @@
-vim.pack.add({ "https://github.com/kevinhwang91/nvim-bqf", "https://github.com/yorickpeterse/nvim-pqf" })
+vim.pack.add({
+  "https://github.com/kevinhwang91/nvim-bqf",
+  "https://github.com/yorickpeterse/nvim-pqf"
+})
 
-require("bqf").bootstrap() -- only because we are inside BufRead
+require("bqf").bootstrap() -- only because we are inside FileType pattern=qf event
 
 local signs = require("config.settings").diagnostic_signs
 require("pqf").setup({

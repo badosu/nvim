@@ -1,14 +1,10 @@
-local utils = require("utils")
-
-utils.once("UIEnter", function()
-  local chanid = vim.v.event["chan"]
-  local chan = vim.api.nvim_get_chan_info(chanid)
-
+Config.once("GUIEnter", function(ev)
   vim.opt.guifont = "IosevkaTerm Nerd Font Mono:h14"
   vim.opt.winblend = 0
   vim.opt.pumblend = 0
 
-  if chan.client.name and vim.g.neovide then
+  local client = ev.data.chan.client
+  if client.name == "neovide" and vim.g.neovide then
     require("config.neovide")
   end
 end, { desc = "Set up GUI config" })
@@ -17,7 +13,7 @@ end, { desc = "Set up GUI config" })
 local lsp_progress = {}
 
 local setup_lsp_progress = function(args)
-  utils.on("LspProgress", function(ev)
+  Config.on("LspProgress", function(ev)
     ---@type vim.event.lspprogress.data
     local data = ev.data
     local value = data.params.value
@@ -39,7 +35,7 @@ local setup_lsp_progress = function(args)
     local msg = {
       { value.message or "done" },
       { string.format(" %s", client.name), "DiagnosticHint" },
-      { string.format(" #%s", client.id), "DiagnosticInfo" },
+      { string.format(" #%s", client.id),  "DiagnosticInfo" },
     }
 
     vim.api.nvim_echo(msg, false, {
@@ -64,7 +60,7 @@ local setup_lsp_progress = function(args)
   })
 end
 
-utils.on("LspAttach", setup_lsp_progress, { desc = "Set up LSP Progress" })
+Config.on("LspAttach", setup_lsp_progress, { desc = "Set up LSP Progress" })
 
 -- Auto-delete initial buffer when a real file is opened =======================
 
@@ -81,4 +77,4 @@ local function check_scratch_buffer()
   end
 end
 
-utils.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })
+Config.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })

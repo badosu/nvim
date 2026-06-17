@@ -15,12 +15,16 @@ local check_git_repo = function(ev)
   })
 end
 
-local utils = require("utils")
-
-utils.on("BufEnter", function(ev)
+Config.on("BufEnter", function(ev)
   check_git_repo(ev)
+end, { desc = "Dispatch GitBufOpen" })
 
-  if utils.buf_is_quickfix(ev.buf) then
-    vim.api.nvim_exec_autocmds("User", { pattern = "QfBufOpen" })
+Config.once("UIEnter", function()
+  local chanid = vim.v.event["chan"]
+  local chan = vim.api.nvim_get_chan_info(chanid)
+  local client = chan.client
+
+  if client.type == "ui" and client.name ~= "nvim-tui" then
+    vim.api.nvim_exec_autocmds("GUIEnter", { data = { chan = chan } })
   end
-end, { desc = "Check for GitBufOpen and QfBufOpen triggers" })
+end, { desc = "Dispatch GUIEnter" })

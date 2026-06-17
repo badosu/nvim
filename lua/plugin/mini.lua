@@ -1,4 +1,4 @@
-local utils = require("utils")
+vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
 
 require("mini.align").setup()
 require("mini.surround").setup({})
@@ -66,7 +66,9 @@ require("mini.basics").setup({
 
 -- mini.pick ===================================================================
 local pick = require("mini.pick")
-pick.setup()
+pick.setup({
+  mappings = { choose_marked = '<C-q>', }
+})
 
 vim.keymap.set("n", "<leader><leader>", pick.builtin.files, { desc = "Find files" })
 vim.keymap.set("n", "<leader>sg", pick.builtin.grep_live, { desc = "Live grep" })
@@ -88,16 +90,16 @@ miniclue.setup({
   triggers = {
     -- Leader triggers
     { mode = { "n", "x" }, keys = "<Leader>" },
-    { mode = "n", keys = "\\" },
+    { mode = "n",          keys = "\\" },
 
     { mode = { "v", "n" }, keys = "s" },
 
     -- `[` and `]` keys
-    { mode = "n", keys = "[" },
-    { mode = "n", keys = "]" },
+    { mode = "n",          keys = "[" },
+    { mode = "n",          keys = "]" },
 
     -- Built-in completion
-    { mode = "i", keys = "<C-x>" },
+    { mode = "i",          keys = "<C-x>" },
 
     -- `g` key
     { mode = { "n", "x" }, keys = "g" },
@@ -111,7 +113,7 @@ miniclue.setup({
     { mode = { "i", "c" }, keys = "<C-r>" },
 
     -- Window commands
-    { mode = "n", keys = "<C-w>" },
+    { mode = "n",          keys = "<C-w>" },
 
     -- `z` key
     { mode = { "n", "x" }, keys = "z" },
@@ -125,13 +127,13 @@ miniclue.setup({
     miniclue.gen_clues.registers(),
     miniclue.gen_clues.windows(),
     miniclue.gen_clues.z(),
-    { mode = "n", keys = "<leader>x", desc = "+Diagnostic" },
-    { mode = "n", keys = "<leader>s", desc = "+Search/Find" },
-    { mode = "n", keys = "<leader>t", desc = "+Test" },
-    { mode = "n", keys = "<leader>d", desc = "+Debug" },
+    { mode = "n",          keys = "<leader>x", desc = "+Diagnostic" },
+    { mode = "n",          keys = "<leader>s", desc = "+Search/Find" },
+    { mode = "n",          keys = "<leader>t", desc = "+Test" },
+    { mode = "n",          keys = "<leader>d", desc = "+Debug" },
     { mode = { "n", "h" }, keys = "<leader>h", desc = "+Git" },
-    { mode = "n", keys = "<leader>b", desc = "+Buffer" },
-    -- { mode = "n", keys = "<C-tab>", desc = "+Tab" }, -- doesnt work for some reason
+    { mode = "n",          keys = "<leader>b", desc = "+Buffer" },
+    -- { mode = "n", keys = "<tab>", desc = "+Tab" }, -- doesnt work for some reason
   },
 
   window = {
@@ -228,7 +230,7 @@ local toggle_dotfiles = function()
   MiniFiles.refresh({ content = { filter = new_filter } })
 end
 
-utils.on("User", function(args)
+Config.on("User", function(args)
   vim.keymap.set("n", "<enter>", function()
     files.go_in({ close_on_file = true })
   end, { buffer = args.data.buf_id, desc = "Go in" })
@@ -237,7 +239,7 @@ utils.on("User", function(args)
   vim.keymap.set("n", "<C-[>", files.close, { buffer = args.data.buf_id, desc = "Close" })
 end, {
   pattern = "MiniFilesBufferCreate",
-  desc = "Set up keymaps for MiniFiles",
+  desc = "Set up keymaps for mini.files",
 })
 
 -- mini.hipatterns =============================================================
@@ -251,7 +253,7 @@ end
 
 update_mini_hl()
 
-utils.on("ColorScheme", update_mini_hl, {
+Config.on("ColorScheme", update_mini_hl, {
   group = vim.api.nvim_create_augroup("todo_highlight", { clear = true }),
   desc = "Update todo_highlight user highlights",
 })
@@ -260,12 +262,12 @@ local hi_todo = function(words, hl_name)
   -- Examples: `NOTE` `NOTE:` ` NOTE ` ` NOTE:`
   -- PERF  asdasdasdasd
   local pattern = vim
-    .iter(words)
-    :map(function(word)
-      return { "%f[%w]()" .. word .. "()%f[%W]", "() " .. word .. "[: ]()" }
-    end)
-    :flatten()
-    :totable()
+      .iter(words)
+      :map(function(word)
+        return { "%f[%w]()" .. word .. "()%f[%W]", "() " .. word .. "[: ]()" }
+      end)
+      :flatten()
+      :totable()
 
   return {
     pattern = pattern,
@@ -307,7 +309,7 @@ project.setup({
   event = "User",
   event_opts = { pattern = "GitBufOpen" },
   detect = function(path, data)
-    return not utils.is_dot_home_project(path) and (data.git_root or vim.fs.root(path, ".git"))
+    return not Config.is_dot_home_project(path) and (data.git_root or vim.fs.root(path, ".git"))
   end,
 })
 
@@ -337,11 +339,11 @@ starter.setup({
   evaluate_single = true, -- trigger as soon as query is resolved
   items = {
     recent_projects(5),
-    { name = "New Buffer", action = "enew", section = "Actions" },
-    { name = "Project Open", action = project.pick, section = "Actions" },
-    { name = "Config Edit", action = open_config_picker, section = "Actions" },
-    { name = "Explore", action = files_cwd, section = "Actions" },
-    { name = "Quit Neovim", action = "qall", section = "Actions" },
+    { name = "New Buffer",   action = "enew",             section = "Actions" },
+    { name = "Project Open", action = project.pick,       section = "Actions" },
+    { name = "Config Edit",  action = open_config_picker, section = "Actions" },
+    { name = "Explore",      action = files_cwd,          section = "Actions" },
+    { name = "Quit Neovim",  action = "qall",             section = "Actions" },
   },
   footer = "",
 })
@@ -358,7 +360,9 @@ local store = require("config.settings")
 
 icons.setup({ lsp = store.icons.lsp })
 icons.mock_nvim_web_devicons()
-utils.once_lsp(icons.tweak_lsp_kind, { desc = "Tweak LSP kinds for mini.icons once" })
+Config.once_lsp(function()
+  icons.tweak_lsp_kind()
+end, { desc = "Tweak LSP kinds for mini.icons once" })
 
 -- mini.notify =================================================================
 local notify = require("mini.notify")
