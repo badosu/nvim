@@ -15,16 +15,17 @@ local check_git_repo = function(ev)
   })
 end
 
-Config.on("BufEnter", function(ev)
-  check_git_repo(ev)
-end, { desc = "Dispatch GitBufOpen" })
-
-Config.once("UIEnter", function()
+local gui_enter = function(ev)
   local chanid = vim.v.event["chan"]
   local chan = vim.api.nvim_get_chan_info(chanid)
   local client = chan.client
 
-  if client.type == "ui" and client.name ~= "nvim-tui" then
+  -- WARN: This probably won't work well when operating as server/client
+  if client and client.type == "ui" and client.name ~= "nvim-tui" then
     vim.api.nvim_exec_autocmds("GUIEnter", { data = { chan = chan } })
+    vim.api.nvim_del_autocmd(ev.id)
   end
-end, { desc = "Dispatch GUIEnter" })
+end
+
+Config.on("BufEnter", check_git_repo, { desc = "Dispatch GitBufOpen" })
+Config.once("UIEnter", gui_enter, { desc = "Dispatch GUIEnter" })
