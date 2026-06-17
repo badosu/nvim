@@ -3,7 +3,7 @@ local pick = require("mini.pick")
 local M = {}
 
 local config = {
-  event = { "BufReadPost", "BufNewFile" },
+  event = { "BufEnter" },
   event_opts = {
     group = vim.api.nvim_create_augroup("pick.project", {}),
     desc = "Check if this file belongs to a project to be added",
@@ -170,7 +170,6 @@ function M.choose(item)
   end
 
   touch(item.path)
-  vim.fn.chdir(item.path)
   vim.schedule(function()
     pick.builtin.files(nil, { source = { cwd = item.path } })
   end)
@@ -194,19 +193,16 @@ local preview = function(buf_id, item)
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, files)
 end
 
-function M.pick(opts)
-  local source = {
-    name = "Projects",
-    items = M.list(-1),
-    choose = M.choose,
-    preview = preview,
-  }
+local pick_source = {
+  name = "Projects",
+  choose = M.choose,
+  preview = preview,
+}
 
-  opts = vim.tbl_deep_extend("force", {
-    source = source,
-  }, opts or {})
+function M.pick()
+  pick_source.items = M.list()
 
-  return pick.start(opts)
+  return pick.start({ source = pick_source })
 end
 
 function M.add(path)

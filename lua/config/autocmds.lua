@@ -1,9 +1,23 @@
 local utils = require("utils")
 
+utils.once("UIEnter", function()
+  local chanid = vim.v.event["chan"]
+  local chan = vim.api.nvim_get_chan_info(chanid)
+
+  vim.opt.guifont = "IosevkaTerm Nerd Font Mono:h14"
+  vim.opt.winblend = 0
+  vim.opt.pumblend = 0
+
+  if chan.client.name and vim.g.neovide then
+    require("config.neovide")
+  end
+end, { desc = "Set up GUI config" })
+
+-- Echo lsp_progress  ==========================================================
 local lsp_progress = {}
 
-utils.new_autocmd("LspAttach", function(args)
-  utils.new_autocmd("LspProgress", function(ev)
+local setup_lsp_progress = function(args)
+  utils.on("LspProgress", function(ev)
     ---@type vim.event.lspprogress.data
     local data = ev.data
     local value = data.params.value
@@ -48,4 +62,23 @@ utils.new_autocmd("LspAttach", function(args)
     buffer = args.buf,
     desc = "Notify LSP Progress",
   })
-end, { desc = "Set up LSP progress" })
+end
+
+utils.on("LspAttach", setup_lsp_progress, { desc = "Set up LSP Progress" })
+
+-- Auto-delete initial buffer when a real file is opened =======================
+
+-- Whether buffer is empty, unnamed, and not modified
+local function is_scratch_buffer(bufnr)
+  return vim.fn.bufname(bufnr) == "" and vim.bo[bufnr].buftype == "" and not vim.bo[bufnr].modified
+end
+
+local function check_scratch_buffer()
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if is_scratch_buffer(bufnr) then
+      pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+    end
+  end
+end
+
+utils.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })

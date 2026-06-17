@@ -1,6 +1,6 @@
 local M = {}
 
-local gr = vim.api.nvim_create_augroup("custom-config", {})
+local augroup = vim.api.nvim_create_augroup("my-config", {})
 
 M.is_dot_home_project = function(path)
   path = vim.fs.normalize(path)
@@ -22,18 +22,18 @@ M.is_dot_home_project = function(path)
   return false
 end
 
-local autocmd_opts = { group = gr }
+local autocmd_opts = { group = augroup }
 
-M.new_autocmd = function(ev, callback, opts)
+M.on = function(ev, callback, opts)
   opts = vim.tbl_extend("keep", autocmd_opts, {
     callback = callback,
   }, opts or {})
 
-  vim.api.nvim_create_autocmd(ev, opts)
+  return vim.api.nvim_create_autocmd(ev, opts)
 end
 
-M.once_on = function(ev, callback, opts)
-  M.new_autocmd(ev, callback, vim.tbl_extend("keep", { once = true }, opts or {}))
+M.once = function(ev, callback, opts)
+  return M.on(ev, callback, vim.tbl_extend("keep", { once = true }, opts or {}))
 end
 
 M.require_on = function(ev, paths, opts)
@@ -43,11 +43,19 @@ M.require_on = function(ev, paths, opts)
 
   opts = vim.tbl_extend("keep", { desc = "Lua require: " .. table.concat(paths, " | ") }, opts or {})
 
-  M.once_on(ev, function()
+  return M.once(ev, function()
     for _, path in ipairs(paths) do
       require(path)
     end
   end, opts)
+end
+
+M.buf_is_quickfix = function(buf)
+  return vim.api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix"
+end
+
+M.once_lsp = function(callback, opts)
+  return vim.g.lsp_was_ever_attached and callback() or M.once("LspAttach", callback, opts)
 end
 
 return M

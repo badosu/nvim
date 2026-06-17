@@ -1,5 +1,5 @@
-local check_git_repo = function(arg)
-  local file = vim.api.nvim_buf_get_name(arg.buf)
+local check_git_repo = function(ev)
+  local file = vim.api.nvim_buf_get_name(ev.buf)
   if file == "" then
     return
   end
@@ -11,12 +11,16 @@ local check_git_repo = function(arg)
 
   vim.api.nvim_exec_autocmds("User", {
     pattern = "GitBufOpen",
-    data = vim.tbl_extend("keep", { git_root = root }, arg),
+    data = vim.tbl_extend("keep", { git_root = root }, ev),
   })
 end
 
-require("utils").new_autocmd(
-  { "BufReadPost", "BufNewFile" },
-  check_git_repo,
-  { desc = "Check if this file is inside a git tracked repository" }
-)
+local utils = require("utils")
+
+utils.on("BufEnter", function(ev)
+  check_git_repo(ev)
+
+  if utils.buf_is_quickfix(ev.buf) then
+    vim.api.nvim_exec_autocmds("User", { pattern = "QfBufOpen" })
+  end
+end, { desc = "Check for GitBufOpen and QfBufOpen triggers" })

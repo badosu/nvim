@@ -45,8 +45,9 @@
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/nvim-pqf",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/nvim-treesitter-textobjects",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/plenary.nvim",
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/render-markdown.nvim",
       "$XDG_DATA_HOME/nvim/site/pack/core/opt/tokyonight.nvim",
-      "$XDG_DATA_HOME/nvim/site/pack/core/opt/tree-sitter-manager.nvim"
+      "$XDG_DATA_HOME/nvim/site/pack/core/opt/tree-sitter-manager.nvim",
     ]
   },
   "diagnostics.disable": [

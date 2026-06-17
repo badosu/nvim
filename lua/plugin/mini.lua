@@ -5,6 +5,7 @@ require("mini.surround").setup({})
 require("mini.tabline").setup()
 require("mini.cmdline").setup()
 require("mini.statusline").setup()
+require("mini.misc").setup_auto_root()
 
 local bufremove = require("mini.bufremove")
 
@@ -69,13 +70,15 @@ pick.setup()
 
 vim.keymap.set("n", "<leader><leader>", pick.builtin.files, { desc = "Find files" })
 vim.keymap.set("n", "<leader>sg", pick.builtin.grep_live, { desc = "Live grep" })
+vim.keymap.set("n", "<leader>sG", function()
+  pick.builtin.grep_live({ tool = "rg --hidden" })
+end, { desc = "Live grep (hidden files)" })
 vim.keymap.set("n", "<leader>sb", pick.builtin.buffers, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>sh", pick.builtin.help, { desc = "Help" })
 
 local open_config_picker = function()
   local config_path = vim.fn.stdpath("config")
   pick.builtin.files(nil, { source = { cwd = config_path } })
-  vim.fn.chdir(config_path)
 end
 vim.keymap.set("n", "<leader>sc", open_config_picker, { desc = "Edit config" })
 
@@ -122,13 +125,13 @@ miniclue.setup({
     miniclue.gen_clues.registers(),
     miniclue.gen_clues.windows(),
     miniclue.gen_clues.z(),
-    { mode = "n", keys = "<leader>b", desc = "+Buffer" },
-    { mode = "n", keys = "<leader>x", desc = "+Diagnostics" },
+    { mode = "n", keys = "<leader>x", desc = "+Diagnostic" },
     { mode = "n", keys = "<leader>s", desc = "+Search/Find" },
-    { mode = "n", keys = "<leader>t", desc = "+Tests" },
+    { mode = "n", keys = "<leader>t", desc = "+Test" },
     { mode = "n", keys = "<leader>d", desc = "+Debug" },
     { mode = { "n", "h" }, keys = "<leader>h", desc = "+Git" },
-    { mode = "n", keys = "<leader><tab>", desc = "+Tab" },
+    { mode = "n", keys = "<leader>b", desc = "+Buffer" },
+    -- { mode = "n", keys = "<C-tab>", desc = "+Tab" }, -- doesnt work for some reason
   },
 
   window = {
@@ -138,9 +141,7 @@ miniclue.setup({
 })
 
 -- movement for treesitter objects, e.g. cif (delete inner function) ===========
-vim.pack.add({
-  { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
-})
+vim.pack.add({ { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" } })
 
 local ai = require("mini.ai")
 ai.setup({
@@ -202,13 +203,13 @@ vim.keymap.set("n", "-", function()
   end
 
   files.open(path, false)
-end, { desc = "Open files for buffer" })
+end, { desc = "Explore buffer directory" })
 
 local files_cwd = function()
   files.open(nil, false)
 end
 -- Fresh explorer in current working directory
-vim.keymap.set("n", "C--", files_cwd, { desc = "Open files for CWD" })
+vim.keymap.set("n", "<C-->", files_cwd, { desc = "Explore CWD" })
 
 local show_dotfiles = true
 
@@ -227,7 +228,7 @@ local toggle_dotfiles = function()
   MiniFiles.refresh({ content = { filter = new_filter } })
 end
 
-utils.new_autocmd("User", function(args)
+utils.on("User", function(args)
   vim.keymap.set("n", "<enter>", function()
     files.go_in({ close_on_file = true })
   end, { buffer = args.data.buf_id, desc = "Go in" })
@@ -250,13 +251,14 @@ end
 
 update_mini_hl()
 
-utils.new_autocmd("ColorScheme", update_mini_hl, {
+utils.on("ColorScheme", update_mini_hl, {
   group = vim.api.nvim_create_augroup("todo_highlight", { clear = true }),
-  desc = "Update mini.hipatterns user highlights",
+  desc = "Update todo_highlight user highlights",
 })
 
 local hi_todo = function(words, hl_name)
   -- Examples: `NOTE` `NOTE:` ` NOTE ` ` NOTE:`
+  -- PERF  asdasdasdasd
   local pattern = vim
     .iter(words)
     :map(function(word)
@@ -264,6 +266,7 @@ local hi_todo = function(words, hl_name)
     end)
     :flatten()
     :totable()
+
   return {
     pattern = pattern,
     -- NOTE: Highlight only inside treesitter comments when a parser is available
@@ -287,7 +290,6 @@ local hi_todo = function(words, hl_name)
   }
 end
 
--- PERF  asdasdasdasd
 mini_patterns.setup({
   highlighters = {
     fix = hi_todo({ "FIX", "FIXME" }, "MiniHipatternsFixme"),
@@ -315,16 +317,15 @@ vim.keymap.set("n", "<leader>sp", project.pick, { desc = "Projects" })
 local starter = require("mini.starter")
 
 local recent_projects = function(length)
-  local section = "Recent Projects"
   local items = {}
 
   for i, entry in ipairs(project.list(length)) do
     table.insert(items, {
-      name = i .. " " .. entry.text,
+      name = string.format("%i %s", i, entry.text),
+      section = "Recent Projects",
       action = function()
         project.choose(entry)
       end,
-      section = section,
     })
   end
 
@@ -337,7 +338,7 @@ starter.setup({
   items = {
     recent_projects(5),
     { name = "New Buffer", action = "enew", section = "Actions" },
-    { name = "Open Project", action = project.pick, section = "Actions" },
+    { name = "Project Open", action = project.pick, section = "Actions" },
     { name = "Config Edit", action = open_config_picker, section = "Actions" },
     { name = "Explore", action = files_cwd, section = "Actions" },
     { name = "Quit Neovim", action = "qall", section = "Actions" },
@@ -350,76 +351,14 @@ if vim.fn.argc() == 0 and vim.fn.line2byte(1) == -1 and vim.bo.buftype == "" the
   starter.open()
 end
 
--- Auto-delete the initial [No Name] buffer when a real file is opened =========
-
--- Whether buffer is empty, unnamed, and not modified
-local function is_scratch_buffer(bufnr)
-  return vim.fn.bufname(bufnr) == "" and vim.bo[bufnr].buftype == "" and not vim.bo[bufnr].modified
-end
-
-local function check_scratch_buffer(bufnr)
-  if is_scratch_buffer(bufnr) then
-    vim.schedule(function()
-      pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
-    end)
-  end
-end
-
-utils.once_on("BufReadPre", function()
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    check_scratch_buffer(bufnr)
-  end
-end, { desc = "Remove scratch buffer once first buffer is read" })
-
 -- mini.icons ===================================================================
 
 local icons = require("mini.icons")
-icons.setup({
-  lsp = {
-    -- lazyvim kind icons
-    array = { glyph = "", hl = "MiniIconsOrange" },
-    boolean = { glyph = "󰨙", hl = "MiniIconsOrange" },
-    enummember = { glyph = "", hl = "MiniIconsYellow" },
-    key = { glyph = "", hl = "MiniIconsYellow" },
-    namespace = { glyph = "󰦮", hl = "MiniIconsRed" },
-    null = { glyph = "", hl = "MiniIconsGrey" },
-    number = { glyph = "󰎠", hl = "MiniIconsOrange" },
-    object = { glyph = "", hl = "MiniIconsGrey" },
-    package = { glyph = "", hl = "MiniIconsPurple" },
-    string = { glyph = "", hl = "MiniIconsGreen" },
-    typeparameter = { glyph = "", hl = "MiniIconsCyan" },
+local store = require("config.settings")
 
-    -- lazyvim lsp icons
-    class = { glyph = "󱡠", hl = "MiniIconsPurple" },
-    color = { glyph = "󰏘", hl = "MiniIconsRed" },
-    constant = { glyph = "󰏿", hl = "MiniIconsOrange" },
-    constructor = { glyph = "󰒓", hl = "MiniIconsAzure" },
-    enum = { glyph = "󰦨", hl = "MiniIconsPurple" },
-    event = { glyph = "󱐋", hl = "MiniIconsRed" },
-    field = { glyph = "󰜢", hl = "MiniIconsYellow" },
-    file = { glyph = "󰈔", hl = "MiniIconsBlue" },
-    ["function"] = { glyph = "󰊕", hl = "MiniIconsAzure" },
-    folder = { glyph = "󰉋", hl = "MiniIconsBlue" },
-    interface = { glyph = "󱡠", hl = "MiniIconsPurple" },
-    keyword = { glyph = "󰻾", hl = "MiniIconsCyan" },
-    method = { glyph = "󰊕", hl = "MiniIconsAzure" },
-    module = { glyph = "󰅩", hl = "MiniIconsPurple" },
-    operator = { glyph = "󰪚", hl = "MiniIconsCyan" },
-    property = { glyph = "󰖷", hl = "MiniIconsYellow" },
-    reference = { glyph = "󰬲", hl = "MiniIconsCyan" },
-    snippet = { glyph = "󱄽", hl = "MiniIconsGreen" },
-    struct = { glyph = "󱡠", hl = "MiniIconsPurple" },
-    text = { glyph = "󰉿", hl = "MiniIconsGreen" },
-    unit = { glyph = "󰪚", hl = "MiniIconsCyan" },
-    value = { glyph = "󰦨", hl = "MiniIconsBlue" },
-    variable = { glyph = "󰆦", hl = "MiniIconsCyan" },
-  },
-})
-
+icons.setup({ lsp = store.icons.lsp })
 icons.mock_nvim_web_devicons()
-utils.once_on("LspAttach", function()
-  icons.tweak_lsp_kind()
-end, { desc = "Tweak LSP kinds for mini.icons once" })
+utils.once_lsp(icons.tweak_lsp_kind, { desc = "Tweak LSP kinds for mini.icons once" })
 
 -- mini.notify =================================================================
 local notify = require("mini.notify")

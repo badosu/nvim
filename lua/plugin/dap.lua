@@ -7,15 +7,7 @@ vim.pack.add({
 -- DAP ============================================
 local dap = require("dap")
 
-local dap_icons = {
-  Stopped = { "󰁕", "DiagnosticWarn", "DapStoppedLine" },
-  Breakpoint = "",
-  BreakpointCondition = "",
-  BreakpointRejected = { "", "DiagnosticError" },
-  LogPoint = ">",
-}
-
-for name, sign in pairs(dap_icons) do
+for name, sign in pairs(require("config.settings").icons.dap) do
   sign = type(sign) == "table" and sign or { sign }
 
   vim.fn.sign_define(
