@@ -1,5 +1,5 @@
 local M = {
-  settings = require("config.settings")
+  settings = require("config.settings"),
 }
 
 local augroup = vim.api.nvim_create_augroup("my-config", {})

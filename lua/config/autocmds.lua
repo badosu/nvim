@@ -1,5 +1,5 @@
 -- Whether any LSP client has ever attached
-Config.once("LspAttach", function()
+Config.once("BufReadPre", function()
   vim.lsp.document_color.enable(true, nil, { style = "virtual" })
   vim.diagnostic.config(Config.settings.diagnostic)
 end, { desc = "Configure LSP options" })
@@ -29,7 +29,7 @@ local setup_lsp_progress = function(args)
     end
 
     -- Construct LSP progress id
-    local lsp_progress_id = data.params.token
+    local lsp_progress_id = string.format("%s.%s", client.id, data.params.token)
     local progress_info = lsp_progress[lsp_progress_id] or {}
 
     -- Store percentage to be used if no new one was sent
@@ -41,11 +41,11 @@ local setup_lsp_progress = function(args)
     local msg = {
       { value.message or "done" },
       { string.format(" %s", client.name), "DiagnosticHint" },
-      { string.format(" #%s", client.id),  "DiagnosticInfo" },
+      { string.format("#%s", client.id), "DiagnosticInfo" },
     }
 
     vim.api.nvim_echo(msg, false, {
-      id = "lsp." .. lsp_progress_id,
+      id = string.format("lsp.%s", lsp_progress_id),
       kind = "progress",
       source = "vim.lsp",
       title = progress_info.title,
@@ -90,3 +90,7 @@ Config.on("FileType", function()
   -- Do on `FileType` to always override these changes from filetype plugins.
   vim.cmd("setlocal formatoptions-=c formatoptions-=o")
 end, { desc = "Proper 'formatoptions'" })
+
+Config.on("FileType", function()
+  vim.opt_local.makeprg = "g++ -Wall -Wextra -O2 % -o %<"
+end, { pattern = "cpp" })

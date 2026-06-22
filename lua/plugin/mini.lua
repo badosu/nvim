@@ -2,10 +2,11 @@ vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
 
 require("mini.align").setup()
 require("mini.surround").setup({})
-require("mini.tabline").setup()
 require("mini.cmdline").setup()
 require("mini.statusline").setup()
 require("mini.misc").setup_auto_root()
+require("mini.jump").setup()
+-- require("mini.tabline").setup()
 
 local bufremove = require("mini.bufremove")
 
@@ -54,7 +55,7 @@ require("mini.basics").setup({
 local pick = require("mini.pick")
 pick.setup({
   mappings = {
-    choose_marked = "<C-q>" -- Send to quickfix or loclist
+    choose_marked = "<C-q>", -- Send to quickfix or loclist
   },
 })
 
@@ -75,10 +76,10 @@ miniclue.setup({
   triggers = {
     -- Leader triggers
     { mode = { "n", "x" }, keys = "<Leader>" },
-    { mode = "n",          keys = "\\" },
+    { mode = "n", keys = "\\" },
     -- `[` and `]` keys
-    { mode = "n",          keys = "[" },
-    { mode = "n",          keys = "]" },
+    { mode = "n", keys = "[" },
+    { mode = "n", keys = "]" },
     -- Marks
     { mode = { "n", "x" }, keys = "'" },
     { mode = { "n", "x" }, keys = "`" },
@@ -86,11 +87,11 @@ miniclue.setup({
     { mode = { "n", "x" }, keys = '"' },
     { mode = { "i", "c" }, keys = "<C-r>" },
 
-    { mode = "i",          keys = "<C-x>" }, -- Built-in completion
-    { mode = { "n", "x" }, keys = "g" },     -- `g` key
-    { mode = "n",          keys = "<C-w>" }, -- Window commands
-    { mode = { "n", "x" }, keys = "z" },     -- `z` key
-    { mode = { "v", "n" }, keys = "s" },     -- mini.surround
+    { mode = "i", keys = "<C-x>" }, -- Built-in completion
+    { mode = { "n", "x" }, keys = "g" }, -- `g` key
+    { mode = "n", keys = "<C-w>" }, -- Window commands
+    { mode = { "n", "x" }, keys = "z" }, -- `z` key
+    { mode = { "v", "n" }, keys = "s" }, -- mini.surround
   },
 
   clues = {
@@ -230,12 +231,12 @@ local hi_todo = function(words, hl_name)
   -- Examples: `NOTE` `NOTE:` ` NOTE ` ` NOTE:`
   -- PERF  asdasdasdasd
   local pattern = vim
-      .iter(words)
-      :map(function(word)
-        return { "%f[%w]()" .. word .. "()%f[%W]", "() " .. word .. "[: ]()" }
-      end)
-      :flatten()
-      :totable()
+    .iter(words)
+    :map(function(word)
+      return { "%f[%w]()" .. word .. "()%f[%W]", "() " .. word .. "[: ]()" }
+    end)
+    :flatten()
+    :totable()
 
   return {
     pattern = pattern,
@@ -302,21 +303,40 @@ local recent_projects = function(length)
   return items
 end
 
+local get_fortune = function()
+  local size = 200
+  local cmd = string.format("fortune -n %d -s 2>/dev/null", size)
+  local handle = io.popen(cmd)
+
+  if not handle then
+    return
+  end
+
+  local fortune = handle:read("*a"):gsub("%s+$", "") -- Read output and trim whitespace
+  handle:close()
+
+  return fortune
+end
+
+local starter_items = {
+  recent_projects(5),
+  { name = "New Buffer", action = "enew", section = "Actions" },
+  { name = "Project Open", action = project.pick, section = "Actions" },
+  { name = "Config Edit", action = open_config_picker, section = "Actions" },
+  { name = "Explore", action = files_cwd, section = "Actions" },
+  { name = "Update Plugins", action = vim.pack.update, section = "Actions" },
+  { name = "Quit Neovim", action = "qall", section = "Actions" },
+}
+
 starter.setup({
   autoopen = false,
   evaluate_single = true, -- trigger as soon as query is resolved
-  items = {
-    recent_projects(5),
-    { name = "New Buffer",   action = "enew",             section = "Actions" },
-    { name = "Project Open", action = project.pick,       section = "Actions" },
-    { name = "Config Edit",  action = open_config_picker, section = "Actions" },
-    { name = "Explore",      action = files_cwd,          section = "Actions" },
-    { name = "Quit Neovim",  action = "qall",             section = "Actions" },
-  },
-  footer = "",
+  items = starter_items,
+  footer = get_fortune,
 })
 
--- NOTE: We are already in VimEnter so we need to open manually
+-- NOTE: We already passed VimEnter so we need to open manually, but we need to
+-- avoid opening when a file was opened from cmdline
 if vim.fn.argc() == 0 and vim.fn.line2byte(1) == -1 and vim.bo.buftype == "" then
   starter.open()
 end

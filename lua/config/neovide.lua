@@ -1,6 +1,6 @@
--- mitigate dumb cursor animation
-vim.g.neovide_cursor_animation_length = 0.1
-vim.g.neovide_cursor_animate_command_line = false
+-- disable cursor animation
+vim.g.neovide_cursor_animation_length = 0
+-- vim.g.neovide_cursor_animate_command_line = false
 
 -- pretty floats
 vim.g.neovide_floating_corner_radius = 0.2

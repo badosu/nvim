@@ -43,6 +43,7 @@ vim.opt.cursorline            = true                -- Enable current line highl
 vim.opt.linebreak             = true                -- Wrap lines at 'breakat' (if 'wrap' is set)
 vim.opt.list                  = true                -- Show helpful text indicators
 vim.opt.number                = true                -- Show line numbers
+vim.opt.numberwidth           = 1
 vim.opt.pumheight             = 10                  -- Make popup menu smaller
 vim.opt.pummaxwidth           = 100                 -- Make popup menu not too wide
 vim.opt.shortmess             = 'CFOSWaco'          -- Disable some built-in completion messages
@@ -75,5 +76,6 @@ vim.opt.smartindent           = true     -- Make indenting smart
 vim.opt.virtualedit           = 'block'  -- Allow going past end of line in blockwise mode
 
 -- Built-in completion
+-- vim.opt.complete              = ''                              -- Only lsp completions
 vim.opt.completeopt           = 'menuone,noselect,fuzzy,nosort' -- Use custom behavior
--- vim.opt.completetimeout       = 100                             -- Limit sources delay
+-- vim.opt.completetimeout       = 100                          -- Limit sources delay
