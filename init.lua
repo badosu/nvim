@@ -1,10 +1,23 @@
--- WARN  When adding or removing packs run and replace on .luarc.jsonc
--- .!ls /home/badosu/.local/share/nvim/site/pack/core/opt | sed 's|^|"$XDG_DATA_HOME/nvim/site/pack/core/opt/|; s|$|",|'
-
 -- PERF  Consider uncommenting below if it ever feels sluggish
 vim.loader.enable(true)
 
 require("vim._core.ui2").enable()
+
+--- Creates a closure that invokes `f` with the provided arguments.
+---
+--- The returned function ignores any arguments passed to it and always calls
+--- `f` with the arguments captured when `fn` was created.
+---
+---@generic R
+---@param f fun(...): R Function to invoke.
+---@param ... any Arguments to capture and pass to `f`.
+---@return fun(): R
+function Fn(f, ...)
+  local args = { ... }
+  return function()
+    return f(unpack(args))
+  end
+end
 
 Config = require("config")
 
@@ -13,9 +26,7 @@ require("config.events")
 require("config.keymaps")
 require("config.autocmds")
 
-Config.once("BufEnter", function()
-  vim.cmd.packadd("nvim.undotree")
-end, { desc = "Set up undotree" })
+Config.once("BufEnter", Fn(vim.cmd.packadd, "nvim.undotree"), { desc = "Set up undotree" })
 
 require("plugin")
 

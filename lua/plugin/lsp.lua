@@ -26,33 +26,3 @@ Config.on("FileType", function()
     },
   })
 end, { pattern = "lua" })
-
--- local neovim_config_path = vim.fn.stdpath("config")
---
--- local function get_pack_paths()
---   local paths = {}
---   local pack_glob = string.format("%s/%s/*", vim.fn.stdpath("data"), "site/pack/core/opt")
---   for _, dir in ipairs(vim.fn.glob(pack_glob, true, true)) do
---     table.insert(paths, dir)
---   end
---
---   return paths
--- end
---
--- vim.lsp.config("lua_ls", {
---   settings = { Lua = { workspace = { library = { "$VIMRUNTIME" } } } },
---   ---@param client vim.lsp.Client
---   on_init = function(client)
---     local root = client.workspace_folders
---         and client.workspace_folders[1]
---         and vim.uri_to_fname(client.workspace_folders[1].uri)
---       or vim.fn.getcwd()
---
---     if not vim.startswith(root, neovim_config_path) then
---       return
---     end
---
---     local settings = client.config.settings.Lua
---     vim.list_extend(settings.workspace.library, get_pack_paths())
---   end,
--- })

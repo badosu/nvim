@@ -7,7 +7,6 @@ Config.require_on("UIEnter", {
 -- We use mise when under GUI due to lacking the env of a profile shell
 Config.require_on("GUIEnter", { "plugin.mise" })
 Config.require_on("BufReadPre", { "plugin.treesitter", "plugin.lint" })
-Config.require_on("InsertEnter", { "plugin.completion" })
 
 Config.require_on("User", {
   "plugin.neotest",

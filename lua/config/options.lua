@@ -76,6 +76,6 @@ vim.opt.smartindent           = true     -- Make indenting smart
 vim.opt.virtualedit           = 'block'  -- Allow going past end of line in blockwise mode
 
 -- Built-in completion
--- vim.opt.complete              = ''                              -- Only lsp completions
+vim.opt.complete              = ''                              -- Only lsp completions
 vim.opt.completeopt           = 'menuone,noselect,fuzzy,nosort' -- Use custom behavior
 -- vim.opt.completetimeout       = 100                          -- Limit sources delay

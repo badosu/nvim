@@ -45,20 +45,10 @@ gitsigns.setup({
     map("n", "<leader>hR", gitsigns.reset_buffer, { desc = "Reset buffer" })
     map("n", "<leader>hp", gitsigns.preview_hunk, { desc = "Preview hunk" })
     map("n", "<leader>hi", gitsigns.preview_hunk_inline, { desc = "Preview hunk inline" })
-
-    map("n", "<leader>hb", function()
-      gitsigns.blame_line({ full = true })
-    end, { desc = "Blame Line" })
-
+    map("n", "<leader>hb", Fn(gitsigns.blame_line, { full = true }), { desc = "Blame Line" })
     map("n", "<leader>hd", gitsigns.diffthis, { desc = "Diff this" })
-
-    map("n", "<leader>hD", function()
-      gitsigns.diffthis("~")
-    end, { desc = "Diff this (~)" })
-
-    map("n", "<leader>hQ", function()
-      gitsigns.setqflist("all")
-    end, { desc = "Set gitsigns quickfix (All)" })
+    map("n", "<leader>hD", Fn(gitsigns.diffthis, "~"), { desc = "Diff this (~)" })
+    map("n", "<leader>hQ", Fn(gitsigns.setqflist, "all"), { desc = "Set gitsigns quickfix (All)" })
     map("n", "<leader>hq", gitsigns.setqflist, { desc = "Set gitsigns quickfix" })
 
     -- Toggles

@@ -59,6 +59,6 @@ end
 
 M.once("LspAttach", function()
   lsp_ever_attached = true
-end, { desc = "Configure LSP options" })
+end, { desc = "Mark any LSP was ever attached (used for lazy loading)" })
 
 return M

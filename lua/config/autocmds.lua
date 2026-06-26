@@ -85,12 +85,22 @@ end
 
 Config.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })
 
-Config.on("FileType", function()
-  -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
-  -- Do on `FileType` to always override these changes from filetype plugins.
-  vim.cmd("setlocal formatoptions-=c formatoptions-=o")
-end, { desc = "Proper 'formatoptions'" })
+-- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
+-- Do on `FileType` to always override these changes from filetype plugins.
+Config.on("FileType", Fn(vim.cmd, "setlocal formatoptions-=c formatoptions-=o"), { desc = "Proper 'formatoptions'" })
 
 Config.on("FileType", function()
   vim.opt_local.makeprg = "g++ -Wall -Wextra -O2 % -o %<"
-end, { pattern = "cpp" })
+end, { pattern = "cpp", desc = "Set makeprg to gcc" })
+
+local set_term_title = function(args)
+  local title = args.data.sequence:match("^\27%][02];(.*)$")
+  if not title then
+    return
+  end
+
+  vim.b[args.buf].term_title = title
+  vim.cmd.redrawtabline()
+end
+
+Config.on("TermRequest", set_term_title, { desc = "Set vim.b.term_title when OSC0 or OSC2 is issued (set title)" })

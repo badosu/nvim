@@ -22,10 +22,7 @@ vim.keymap.set("n", "<leader>ts", neotest.run.stop, { desc = "Stop test run" })
 vim.keymap.set("n", "<leader>to", neotest.output_panel.toggle, { desc = "Toggle output panel" })
 vim.keymap.set("n", "<leader>ts", neotest.summary.toggle, { desc = "Toggle summary panel" })
 
-vim.keymap.set("n", "<leader>td", function()
-  ---@diagnostic disable-next-line: missing-fields
-  neotest.run.run({ strategy = "dap" })
-end, { desc = "Run nearest test (debug)" })
+vim.keymap.set("n", "<leader>td", Fn(neotest.run.run, { strategy = "dap" }), { desc = "Run nearest test (debug)" })
 
 vim.keymap.set("n", "<leader>tf", function()
   neotest.run.run(vim.fn.expand("%"))

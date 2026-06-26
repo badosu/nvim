@@ -1,12 +1,24 @@
 vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
 
+require("mini.input").setup()
 require("mini.align").setup()
 require("mini.surround").setup({})
 require("mini.cmdline").setup()
 require("mini.statusline").setup()
 require("mini.misc").setup_auto_root()
 require("mini.jump").setup()
--- require("mini.tabline").setup()
+
+local tabline = require("mini.tabline")
+tabline.setup({
+  format = function(buf_id, label)
+    local title = vim.b[buf_id].term_title
+    if title and title ~= "" then
+      label = title
+    end
+
+    return tabline.default_format(buf_id, label)
+  end,
+})
 
 local bufremove = require("mini.bufremove")
 
@@ -17,13 +29,8 @@ end, { desc = "Delete current buffer" })
 local bracketed = require("mini.bracketed")
 bracketed.setup()
 
-vim.keymap.set("n", "H", function()
-  bracketed.buffer("backward")
-end, { desc = "Cycle previous buffer" })
-
-vim.keymap.set("n", "L", function()
-  bracketed.buffer("forward")
-end, { desc = "Cycle next buffer" })
+vim.keymap.set("n", "H", Fn(bracketed.buffer, "backward"), { desc = "Cycle previous buffer" })
+vim.keymap.set("n", "L", Fn(bracketed.buffer, "forward"), { desc = "Cycle next buffer" })
 
 require("mini.basics").setup({
   -- Mappings. Set field to `false` to disable.
@@ -63,12 +70,20 @@ vim.keymap.set("n", "<leader><leader>", pick.builtin.files, { desc = "Find files
 vim.keymap.set("n", "<leader>sg", pick.builtin.grep_live, { desc = "Live grep" })
 vim.keymap.set("n", "<leader>sb", pick.builtin.buffers, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>sh", pick.builtin.help, { desc = "Help" })
+vim.keymap.set("n", "<leader>sh", pick.builtin.help, { desc = "Help" })
 
-local open_config_picker = function()
-  local config_path = vim.fn.stdpath("config")
-  pick.builtin.files(nil, { source = { cwd = config_path } })
-end
+local open_config_picker = Fn(pick.builtin.files, nil, { source = { cwd = vim.fn.stdpath("config") } })
 vim.keymap.set("n", "<leader>sc", open_config_picker, { desc = "Edit config" })
+
+-- mini.extra ==
+
+local extra = require("mini.extra")
+extra.setup()
+
+local pick_symbols_doc = Fn(extra.pickers.lsp, { scope = "document_symbol" })
+vim.keymap.set("n", "<leader>sl", pick_symbols_doc, { desc = "Document Symbol (LSP)" })
+local pick_symbols_ws = Fn(extra.pickers.lsp, { scope = "workspace_symbol" })
+vim.keymap.set("n", "<leader>sL", pick_symbols_ws, { desc = "Workspace Symbol (LSP)" })
 
 -- mini.clue ===================================================================
 local miniclue = require("mini.clue")
@@ -117,7 +132,15 @@ vim.pack.add({ { src = "https://github.com/nvim-treesitter/nvim-treesitter-texto
 local ai = require("mini.ai")
 ai.setup({
   n_lines = 500,
-
+  mappings = {
+    -- Next/last variants
+    -- NOTE: This (deliberately) overrides Neovim>=0.12 built-in incremental
+    -- selection mappings. See `:h MiniAi-default-an-in` for more details.
+    around_next = "aN",
+    inside_next = "iN",
+    around_last = "aL",
+    inside_last = "iL",
+  },
   custom_textobjects = {
     -- Function calls
     u = ai.gen_spec.function_call(),
@@ -168,19 +191,16 @@ files.setup({
 vim.keymap.set("n", "-", function()
   local path = vim.api.nvim_buf_get_name(0)
 
-  -- do nothing if buffer is not empty and is not associated to a real file
-  if path ~= "" and vim.fn.filereadable(path) ~= 1 then
+  -- do nothing if buffer is not empty and is not associated to a file path
+  if path ~= "" and vim.bo.buftype ~= "" then
     return
   end
 
   files.open(path, false)
 end, { desc = "Explore buffer directory" })
 
-local files_cwd = function()
-  files.open(nil, false)
-end
 -- Fresh explorer in current working directory
-vim.keymap.set("n", "<C-->", files_cwd, { desc = "Explore CWD" })
+vim.keymap.set("n", "<C-->", Fn(files.open, nil, false), { desc = "Explore CWD" })
 
 local show_dotfiles = true
 
@@ -200,9 +220,8 @@ local toggle_dotfiles = function()
 end
 
 Config.on("User", function(args)
-  vim.keymap.set("n", "<enter>", function()
-    files.go_in({ close_on_file = true })
-  end, { buffer = args.data.buf_id, desc = "Go in" })
+  local go_in = Fn(files.go_in, { close_on_file = true })
+  vim.keymap.set("n", "<enter>", go_in, { buffer = args.data.buf_id, desc = "Go in" })
   vim.keymap.set("n", "-", files.go_out, { buffer = args.data.buf_id, desc = "Go out" })
   vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = args.data.buf_id, desc = "Toggle show dotfiles" })
   vim.keymap.set("n", "<C-[>", files.close, { buffer = args.data.buf_id, desc = "Close" })
@@ -214,22 +233,9 @@ end, {
 -- mini.hipatterns =============================================================
 local mini_patterns = require("mini.hipatterns")
 
-local update_mini_hl = function()
-  local identifier_hl = vim.api.nvim_get_hl(0, { name = "Identifier", link = false })
-
-  vim.api.nvim_set_hl(0, "UserHipatternsPerf", { bold = true, fg = "black", bg = identifier_hl.fg })
-end
-
-update_mini_hl()
-
-Config.on("ColorScheme", update_mini_hl, {
-  group = vim.api.nvim_create_augroup("todo_highlight", { clear = true }),
-  desc = "Update todo_highlight user highlights",
-})
-
 local hi_todo = function(words, hl_name)
   -- Examples: `NOTE` `NOTE:` ` NOTE ` ` NOTE:`
-  -- PERF  asdasdasdasd
+  -- WARN: asdasdasdasd
   local pattern = vim
     .iter(words)
     :map(function(word)
@@ -267,7 +273,6 @@ mini_patterns.setup({
     note = hi_todo({ "NOTE" }, "MiniHipatternsNote"),
     todo = hi_todo({ "TODO", "FEAT" }, "MiniHipatternsTodo"),
     hack = hi_todo({ "HACK", "WARN", "WARNING" }, "MiniHipatternsHack"),
-    perf = hi_todo({ "PERF" }, "UserHipatternsPerf"),
   },
 })
 
@@ -278,7 +283,7 @@ project.setup({
   event = "User",
   event_opts = { pattern = "GitBufOpen" },
   detect = function(path, data)
-    return not Config.is_dot_home_project(path) and (data.git_root or vim.fs.root(path, ".git"))
+    return not Config.is_dot_home_project(path) and (data.git_root or vim.fs.root(path, { ".git" }))
   end,
 })
 
@@ -294,45 +299,51 @@ local recent_projects = function(length)
     table.insert(items, {
       name = string.format("%i %s", i, entry.text),
       section = "Recent Projects",
-      action = function()
-        project.choose(entry)
-      end,
+      action = Fn(project.choose, entry),
     })
   end
 
   return items
 end
 
-local get_fortune = function()
-  local size = 200
-  local cmd = string.format("fortune -n %d -s 2>/dev/null", size)
-  local handle = io.popen(cmd)
+-- local get_fortune = function()
+--   local size = 200
+--   local cmd = string.format("fortune -n %d -s 2>/dev/null", size)
+--   local handle = io.popen(cmd)
+--
+--   if not handle then
+--     return
+--   end
+--
+--   local fortune = handle:read("*a"):gsub("%s+$", "") -- Read output and trim whitespace
+--   handle:close()
+--
+--   return fortune
+-- end
 
-  if not handle then
-    return
-  end
+local open_notes = function()
+  local note_dir = "~/Documents/notes"
 
-  local fortune = handle:read("*a"):gsub("%s+$", "") -- Read output and trim whitespace
-  handle:close()
-
-  return fortune
+  vim.fn.chdir(note_dir)
+  pick.builtin.files(nil, { source = { cwd = note_dir } })
 end
 
 local starter_items = {
-  recent_projects(5),
-  { name = "New Buffer", action = "enew", section = "Actions" },
+  { name = "Manage Notes", action = open_notes, section = "Actions" },
   { name = "Project Open", action = project.pick, section = "Actions" },
   { name = "Config Edit", action = open_config_picker, section = "Actions" },
   { name = "Explore", action = files_cwd, section = "Actions" },
+  { name = "New Buffer", action = "enew", section = "Actions" },
   { name = "Update Plugins", action = vim.pack.update, section = "Actions" },
   { name = "Quit Neovim", action = "qall", section = "Actions" },
+  recent_projects(5),
 }
 
 starter.setup({
   autoopen = false,
   evaluate_single = true, -- trigger as soon as query is resolved
   items = starter_items,
-  footer = get_fortune,
+  footer = "",
 })
 
 -- NOTE: We already passed VimEnter so we need to open manually, but we need to
@@ -366,3 +377,18 @@ notify.setup({
 })
 
 vim.keymap.set("n", "<leader>sn", notify.show_history, { desc = "Notifications" })
+
+-- completion ===================================
+local snippets = require("mini.snippets")
+local gen_loader = snippets.gen_loader
+snippets.setup({
+  snippets = {
+    -- Load snippets based on current language by reading files from
+    -- "snippets/" subdirectories from 'runtimepath' directories.
+    gen_loader.from_lang(),
+  },
+})
+
+require("mini.completion").setup({
+  fallback_action = "", -- avoid ^N insertion by mini.completion when complete is empty
+})

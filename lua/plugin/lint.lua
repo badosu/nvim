@@ -1,5 +1,7 @@
 vim.pack.add({ "https://github.com/stevearc/conform.nvim.git", "https://github.com/mfussenegger/nvim-lint" })
 
+require("plugin.lsp") -- for markdownlint-cli2
+
 local lint = require("lint")
 
 lint.linters_by_ft = {
