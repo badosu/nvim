@@ -85,9 +85,11 @@ end
 
 Config.once("BufReadPre", check_scratch_buffer, { desc = "Remove scratch buffer once first buffer is read" })
 
--- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
--- Do on `FileType` to always override these changes from filetype plugins.
-Config.on("FileType", Fn(vim.cmd, "setlocal formatoptions-=c formatoptions-=o"), { desc = "Proper 'formatoptions'" })
+-- NOTE: Do on `FileType` to always override these changes from filetype plugins.
+Config.on("FileType", function()
+  -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.
+  vim.opt_local.formatoptions:remove({ "c", "o" })
+end, { desc = "Proper 'formatoptions'" })
 
 Config.on("FileType", function()
   vim.opt_local.makeprg = "g++ -Wall -Wextra -O2 % -o %<"
