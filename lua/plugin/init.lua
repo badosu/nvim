@@ -1,3 +1,5 @@
+Config.once("BufEnter", Fn(vim.cmd.packadd, "nvim.undotree"), { desc = "Set up undotree" })
+
 Config.require_on("UIEnter", {
   "plugin.colorscheme",
   "plugin.mini",

@@ -11,9 +11,9 @@ require("mini.jump").setup()
 local tabline = require("mini.tabline")
 tabline.setup({
   format = function(buf_id, label)
-    local title = vim.b[buf_id].term_title
-    if title and title ~= "" then
-      label = title
+    local term_title = vim.b[buf_id].term_title
+    if term_title and term_title ~= "" then
+      label = term_title
     end
 
     return tabline.default_format(buf_id, label)

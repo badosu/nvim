@@ -4,6 +4,22 @@ local M = {
 
 local augroup = vim.api.nvim_create_augroup("my-config", {})
 
+--- Creates a closure that invokes `f` with the provided arguments.
+---
+--- The returned function ignores any arguments passed to it and always calls
+--- `f` with the arguments captured when `fn` was created.
+---
+---@generic R
+---@param f fun(...): R Function to invoke.
+---@param ... any Arguments to capture and pass to `f`.
+---@return fun(): R
+function M.fn(f, ...)
+  local args = { ... }
+  return function()
+    return f(unpack(args))
+  end
+end
+
 M.is_dot_home_project = function(path)
   path = vim.fs.normalize(path)
 
